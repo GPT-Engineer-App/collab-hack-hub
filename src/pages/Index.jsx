@@ -80,20 +80,30 @@ const Index = () => {
 
   const handleCreateProject = async () => {
     if (newProject.trim()) {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert({ name: newProject.trim(), created_by: user.id, description: '' })
-        .select();
-      if (error) console.error('Error creating project:', error);
-      else {
-        await supabase.from('project_members').insert({ project_id: data[0].id, user_id: user.id });
-        setProjects([...projects, data[0]]);
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .insert({ name: newProject.trim(), created_by: user.id, description: '' })
+          .select();
+        if (error) throw error;
+        
+        const newProject = data[0];
+        await supabase.from('project_members').insert({ project_id: newProject.id, user_id: user.id });
+        
+        setProjects([...projects, newProject]);
         setNewProject('');
-        setActiveProject(data[0]);
+        setActiveProject(newProject);
         setActiveTab('team');
         toast({
           title: "Project Created",
-          description: `You've successfully created the project: ${data[0].name}`,
+          description: `You've successfully created the project: ${newProject.name}`,
+        });
+      } catch (error) {
+        console.error('Error creating project:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create project. Please try again.",
+          variant: "destructive",
         });
       }
     }
