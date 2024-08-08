@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { PlusCircle, Users, Lightbulb, BarChart } from "lucide-react"
+import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare } from "lucide-react"
 import Team from '../components/Team';
 import Ideas from '../components/Ideas';
 import Progress from '../components/Progress';
+import Profile from '../components/Profile';
+import ProjectManagement from '../components/ProjectManagement';
+import Collaboration from '../components/Collaboration';
 
 const Index = () => {
   const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState('');
   const [activeProject, setActiveProject] = useState(null);
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState('profile');
 
   const handleCreateProject = () => {
     if (newProject.trim()) {
@@ -24,6 +27,9 @@ const Index = () => {
   };
 
   const renderActiveTab = () => {
+    if (activeTab === 'profile') {
+      return <Profile />;
+    }
     if (!activeProject) return null;
 
     switch (activeTab) {
@@ -33,6 +39,10 @@ const Index = () => {
         return <Ideas projectId={activeProject.id} />;
       case 'progress':
         return <Progress projectId={activeProject.id} />;
+      case 'management':
+        return <ProjectManagement projectId={activeProject.id} />;
+      case 'collaboration':
+        return <Collaboration projectId={activeProject.id} />;
       default:
         return null;
     }
@@ -42,7 +52,7 @@ const Index = () => {
     <div className="min-h-screen p-8 bg-gray-100">
       <h1 className="text-4xl font-bold mb-8 text-center">Hackathon Collaboration Hub</h1>
       
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Create a New Project</CardTitle>
@@ -93,7 +103,10 @@ const Index = () => {
                   <CardTitle>{activeProject.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-around mb-4">
+                  <div className="flex flex-wrap justify-around mb-4">
+                    <Button variant={activeTab === 'profile' ? "default" : "outline"} onClick={() => setActiveTab('profile')}>
+                      <UserCircle className="mr-2 h-4 w-4" /> Profile
+                    </Button>
                     <Button variant={activeTab === 'team' ? "default" : "outline"} onClick={() => setActiveTab('team')}>
                       <Users className="mr-2 h-4 w-4" /> Team
                     </Button>
@@ -102,6 +115,12 @@ const Index = () => {
                     </Button>
                     <Button variant={activeTab === 'progress' ? "default" : "outline"} onClick={() => setActiveTab('progress')}>
                       <BarChart className="mr-2 h-4 w-4" /> Progress
+                    </Button>
+                    <Button variant={activeTab === 'management' ? "default" : "outline"} onClick={() => setActiveTab('management')}>
+                      <PlusCircle className="mr-2 h-4 w-4" /> Management
+                    </Button>
+                    <Button variant={activeTab === 'collaboration' ? "default" : "outline"} onClick={() => setActiveTab('collaboration')}>
+                      <MessageSquare className="mr-2 h-4 w-4" /> Collaboration
                     </Button>
                   </div>
                   {renderActiveTab()}
