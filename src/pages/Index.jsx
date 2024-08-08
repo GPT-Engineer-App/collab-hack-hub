@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database } from "lucide-react"
+import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database, Bell } from "lucide-react"
 import Team from '../components/Team';
 import Ideas from '../components/Ideas';
 import Progress from '../components/Progress';
@@ -10,7 +10,9 @@ import Profile from '../components/Profile';
 import ProjectManagement from '../components/ProjectManagement';
 import Collaboration from '../components/Collaboration';
 import ContentManagement from '../components/ContentManagement';
+import { useAuth } from '../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js'
+import { useToast } from "@/components/ui/use-toast"
 
 const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE')
 
@@ -20,11 +22,17 @@ const Index = () => {
   const [activeProject, setActiveProject] = useState(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [tables, setTables] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchProjects();
-    fetchTables();
-  }, []);
+    if (user) {
+      fetchProjects();
+      fetchTables();
+      fetchNotifications();
+    }
+  }, [user]);
 
   const fetchProjects = async () => {
     const { data, error } = await supabase
@@ -43,11 +51,21 @@ const Index = () => {
     else setTables(data.map(table => table.table_name));
   };
 
+  const fetchNotifications = async () => {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) console.error('Error fetching notifications:', error);
+    else setNotifications(data);
+  };
+
   const handleCreateProject = async () => {
     if (newProject.trim()) {
       const { data, error } = await supabase
         .from('projects')
-        .insert({ name: newProject.trim() })
+        .insert({ name: newProject.trim(), created_by: user.id })
         .select();
       if (error) console.error('Error creating project:', error);
       else {
@@ -55,7 +73,32 @@ const Index = () => {
         setNewProject('');
         setActiveProject(data[0]);
         setActiveTab('team');
+        toast({
+          title: "Project Created",
+          description: `You've successfully created the project: ${data[0].name}`,
+        });
       }
+    }
+  };
+
+  const handleJoinProject = async (projectId) => {
+    const { data, error } = await supabase
+      .from('project_members')
+      .insert({ project_id: projectId, user_id: user.id })
+      .select();
+    if (error) {
+      console.error('Error joining project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to join the project. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Project Joined",
+        description: "You've successfully joined the project!",
+      });
+      fetchProjects(); // Refresh the projects list
     }
   };
 
@@ -131,14 +174,23 @@ const Index = () => {
               <CardContent>
                 <ul className="space-y-2">
                   {projects.map((project) => (
-                    <li key={project.id}>
+                    <li key={project.id} className="flex justify-between items-center">
                       <Button
                         variant={activeProject?.id === project.id ? "default" : "outline"}
-                        className="w-full justify-start"
+                        className="w-3/4 justify-start"
                         onClick={() => setActiveProject(project)}
                       >
                         {project.name}
                       </Button>
+                      {project.created_by !== user.id && (
+                        <Button
+                          variant="outline"
+                          className="w-1/4"
+                          onClick={() => handleJoinProject(project.id)}
+                        >
+                          Join
+                        </Button>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -185,6 +237,22 @@ const Index = () => {
             )}
           </div>
         </div>
+
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Notifications</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {notifications.map((notification) => (
+                <li key={notification.id} className="flex items-center">
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span>{notification.message}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
