@@ -284,6 +284,8 @@ const Index = () => {
                 <CardContent>
                   <div className="flex space-x-2">
                     <Input
+                      id="newProjectName"
+                      name="newProjectName"
                       placeholder="Enter project name"
                       value={newProject}
                       onChange={(e) => setNewProject(e.target.value)}
