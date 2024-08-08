@@ -32,7 +32,7 @@ const App = () => (
             <Route path="/project/:projectId/tasks" element={<PrivateRoute><TaskManagement /></PrivateRoute>} />
             <Route path="/project/:projectId/collaboration" element={<PrivateRoute><Collaboration /></PrivateRoute>} />
             <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
