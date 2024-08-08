@@ -45,6 +45,17 @@ export const AuthProvider = ({ children }) => {
       }
       return { error };
     },
+    deleteAccount: async () => {
+      try {
+        await supabase.auth.signOut();
+        const { error } = await supabase.rpc('delete_user');
+        if (error) throw error;
+        setUser(null);
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        throw error;
+      }
+    },
     user,
     loading,
   };

@@ -102,24 +102,25 @@ const Profile = () => {
   };
 
   const handleDeleteProfile = async () => {
-    if (window.confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', user.id);
-      if (error) {
-        console.error('Error deleting profile:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete profile. Please try again.",
-          variant: "destructive",
-        });
-      } else {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        const { error: deleteError } = await signOut();
+        if (deleteError) throw deleteError;
+
+        const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+        if (authError) throw authError;
+
         toast({
           title: "Success",
-          description: "Profile deleted successfully.",
+          description: "Your account has been deleted successfully.",
         });
-        signOut();
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete account. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
