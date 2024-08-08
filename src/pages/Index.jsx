@@ -43,6 +43,8 @@ const Index = () => {
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     };
 
@@ -50,6 +52,7 @@ const Index = () => {
   }, [user]);
 
   const fetchProjects = async () => {
+    if (!user) return;
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -61,6 +64,7 @@ const Index = () => {
   };
 
   const fetchTables = async () => {
+    if (!user) return;
     const { data, error } = await supabase
       .from('information_schema.tables')
       .select('table_name')
@@ -70,6 +74,7 @@ const Index = () => {
   };
 
   const fetchNotifications = async () => {
+    if (!user) return;
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
@@ -81,10 +86,6 @@ const Index = () => {
 
   if (loading) {
     return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
   }
 
   const markNotificationAsRead = async (notificationId) => {
@@ -198,28 +199,30 @@ const Index = () => {
             <UserCircle className="mr-2 h-4 w-4" /> Profile
           </Button>
         </div>
-        <div className="p-4 border-t">
-          <h2 className="font-semibold mb-2">Your Projects</h2>
-          <ul className="space-y-2">
-            {projects.map((project) => (
-              <li key={project.id}>
-                <Button
-                  variant={activeProject?.id === project.id ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setActiveProject(project);
-                    setActiveTab('team');
-                  }}
-                >
-                  {project.name}
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <Button className="w-full mt-4" onClick={() => setActiveTab('newProject')}>
-            <PlusCircle className="mr-2 h-4 w-4" /> New Project
-          </Button>
-        </div>
+        {user && (
+          <div className="p-4 border-t">
+            <h2 className="font-semibold mb-2">Your Projects</h2>
+            <ul className="space-y-2">
+              {projects.map((project) => (
+                <li key={project.id}>
+                  <Button
+                    variant={activeProject?.id === project.id ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setActiveProject(project);
+                      setActiveTab('team');
+                    }}
+                  >
+                    {project.name}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <Button className="w-full mt-4" onClick={() => setActiveTab('newProject')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> New Project
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
@@ -227,15 +230,21 @@ const Index = () => {
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">{activeProject ? activeProject.name : 'Dashboard'}</h2>
-            <Button variant="outline" onClick={async () => {
-              await signOut();
-              navigate('/signin');
-            }}>
-              <LogOut className="mr-2 h-4 w-4" /> Sign Out
-            </Button>
+            {user ? (
+              <Button variant="outline" onClick={async () => {
+                await signOut();
+                navigate('/signin');
+              }}>
+                <LogOut className="mr-2 h-4 w-4" /> Sign Out
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => navigate('/signin')}>
+                <LogOut className="mr-2 h-4 w-4" /> Sign In
+              </Button>
+            )}
           </div>
 
-          {activeProject && (
+          {user && activeProject && (
             <div className="mb-6 flex space-x-2 overflow-x-auto pb-2">
               <Button variant={activeTab === 'team' ? "default" : "outline"} onClick={() => setActiveTab('team')}>
                 <Users className="mr-2 h-4 w-4" /> Team
@@ -261,52 +270,66 @@ const Index = () => {
             </div>
           )}
 
-          {activeTab === 'newProject' ? (
+          {user ? (
+            activeTab === 'newProject' ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create a New Project</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="Enter project name"
+                      value={newProject}
+                      onChange={(e) => setNewProject(e.target.value)}
+                    />
+                    <Button onClick={handleCreateProject}>Create Project</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              renderContent()
+            )
+          ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Create a New Project</CardTitle>
+                <CardTitle>Welcome to Hackathon Hub</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Enter project name"
-                    value={newProject}
-                    onChange={(e) => setNewProject(e.target.value)}
-                  />
-                  <Button onClick={handleCreateProject}>Create Project</Button>
-                </div>
+                <p>Sign in to start collaborating on exciting hackathon projects!</p>
+                <Button className="mt-4" onClick={() => navigate('/signin')}>Sign In</Button>
               </CardContent>
             </Card>
-          ) : (
-            renderContent()
           )}
 
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {notifications.map((notification) => (
-                  <li key={notification.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                    <div className="flex items-center">
-                      <Bell className="mr-2 h-4 w-4" />
-                      <span>{notification.message}</span>
-                    </div>
-                    {!notification.isread && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => markNotificationAsRead(notification.id)}
-                      >
-                        Mark as Read
-                      </Button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          {user && (
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Notifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {notifications.map((notification) => (
+                    <li key={notification.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                      <div className="flex items-center">
+                        <Bell className="mr-2 h-4 w-4" />
+                        <span>{notification.message}</span>
+                      </div>
+                      {!notification.isread && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markNotificationAsRead(notification.id)}
+                        >
+                          Mark as Read
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
