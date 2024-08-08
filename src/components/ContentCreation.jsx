@@ -7,35 +7,30 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PlusCircle, Image, Video } from "lucide-react"
 
 const ContentCreation = ({ onSave }) => {
-  const [title, setTitle] = useState('');
+  const [path, setPath] = useState('');
   const [content, setContent] = useState('');
-  const [tags, setTags] = useState([]);
-  const [newTag, setNewTag] = useState('');
+  const [type, setType] = useState('');
+  const [source, setSource] = useState('');
 
   const handleSave = () => {
-    onSave({ title, content, tags });
-    setTitle('');
+    const meta = { content }; // You might want to add more metadata here
+    onSave({ path, meta, type, source });
+    setPath('');
     setContent('');
-    setTags([]);
-  };
-
-  const handleAddTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag('');
-    }
+    setType('');
+    setSource('');
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create Content</CardTitle>
+        <CardTitle>Create Page</CardTitle>
       </CardHeader>
       <CardContent>
         <Input
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Path"
+          value={path}
+          onChange={(e) => setPath(e.target.value)}
           className="mb-4"
         />
         <ReactQuill
@@ -43,22 +38,19 @@ const ContentCreation = ({ onSave }) => {
           onChange={setContent}
           className="mb-4"
         />
-        <div className="flex space-x-2 mb-4">
-          <Input
-            placeholder="Add tag"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-          />
-          <Button onClick={handleAddTag}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Tag
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {tags.map((tag, index) => (
-            <span key={index} className="bg-gray-200 px-2 py-1 rounded">{tag}</span>
-          ))}
-        </div>
-        <Button onClick={handleSave} className="w-full">Save Content</Button>
+        <Input
+          placeholder="Type"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          className="mb-4"
+        />
+        <Input
+          placeholder="Source"
+          value={source}
+          onChange={(e) => setSource(e.target.value)}
+          className="mb-4"
+        />
+        <Button onClick={handleSave} className="w-full">Save Page</Button>
       </CardContent>
     </Card>
   );

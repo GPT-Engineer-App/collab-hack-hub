@@ -1,45 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PlusCircle, Search } from "lucide-react"
 import ContentCreation from './ContentCreation';
 import ContentDistribution from './ContentDistribution';
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE')
 
 const ContentManagement = () => {
-  const [contents, setContents] = useState([]);
+  const [pages, setPages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedContent, setSelectedContent] = useState(null);
+  const [selectedPage, setSelectedPage] = useState(null);
 
-  const handleSaveContent = (newContent) => {
-    setContents([...contents, { ...newContent, id: Date.now() }]);
+  useEffect(() => {
+    fetchPages();
+  }, []);
+
+  const fetchPages = async () => {
+    const { data, error } = await supabase
+      .from('nods_page')
+      .select('*');
+    if (error) console.error('Error fetching pages:', error);
+    else setPages(data);
   };
 
-  const filteredContents = contents.filter(content =>
-    content.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    content.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  const handleSavePage = async (newPage) => {
+    const { data, error } = await supabase
+      .from('nods_page')
+      .insert({ path: newPage.path, meta: newPage.meta, type: newPage.type, source: newPage.source })
+      .select();
+    if (error) console.error('Error saving page:', error);
+    else {
+      setPages([...pages, data[0]]);
+    }
+  };
+
+  const filteredPages = pages.filter(page =>
+    page.path.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (page.meta && JSON.stringify(page.meta).toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
     <div className="space-y-4">
-      <ContentCreation onSave={handleSaveContent} />
+      <ContentCreation onSave={handleSavePage} />
       
       <Card>
         <CardHeader>
-          <CardTitle>Content Library</CardTitle>
+          <CardTitle>Page Library</CardTitle>
         </CardHeader>
         <CardContent>
           <Input
-            placeholder="Search content"
+            placeholder="Search pages"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="mb-4"
           />
           <ul className="space-y-2">
-            {filteredContents.map((content) => (
-              <li key={content.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
-                <span>{content.title}</span>
-                <Button onClick={() => setSelectedContent(content)}>
+            {filteredPages.map((page) => (
+              <li key={page.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                <span>{page.path}</span>
+                <Button onClick={() => setSelectedPage(page)}>
                   <Search className="mr-2 h-4 w-4" /> View
                 </Button>
               </li>
@@ -48,8 +70,8 @@ const ContentManagement = () => {
         </CardContent>
       </Card>
 
-      {selectedContent && (
-        <ContentDistribution content={selectedContent} />
+      {selectedPage && (
+        <ContentDistribution content={selectedPage} />
       )}
     </div>
   );
