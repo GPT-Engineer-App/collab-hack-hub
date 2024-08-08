@@ -23,7 +23,12 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signIn({ email: formData.email, password: formData.password });
+      const { error } = await signIn({ email: formData.email, password: formData.password });
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "You have successfully signed in.",
+      });
       navigate('/');
     } catch (error) {
       console.error('Error signing in:', error);
