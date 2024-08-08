@@ -121,12 +121,11 @@ const Index = () => {
   };
 
   const renderActiveTab = () => {
-    if (activeTab === 'profile') {
-      return <Profile />;
-    }
-    if (!activeProject) return null;
+    if (!activeProject && activeTab !== 'profile') return null;
 
     switch (activeTab) {
+      case 'profile':
+        return <Profile />;
       case 'team':
         return <Team projectId={activeProject.id} />;
       case 'ideas':
@@ -168,50 +167,111 @@ const Index = () => {
         </Button>
       </div>
       
-      <div className="max-w-6xl mx-auto">
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Create a New Project</CardTitle>
-            <CardDescription>Start collaborating on your hackathon idea</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Enter project name"
-                value={newProject}
-                onChange={(e) => setNewProject(e.target.value)}
-              />
-              <Button onClick={handleCreateProject}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Create
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Create a New Project</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col space-y-2">
+                  <Input
+                    placeholder="Enter project name"
+                    value={newProject}
+                    onChange={(e) => setNewProject(e.target.value)}
+                  />
+                  <Button onClick={handleCreateProject}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create Project
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
-                <CardTitle>Projects</CardTitle>
+                <CardTitle>Your Projects</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {projects.map((project) => (
-                    <li key={project.id} className="flex justify-between items-center">
+                    <li key={project.id}>
                       <Button
                         variant={activeProject?.id === project.id ? "default" : "outline"}
-                        className="w-3/4 justify-start"
-                        onClick={() => setActiveProject(project)}
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveProject(project);
+                          setActiveTab('team');
+                        }}
                       >
                         {project.name}
                       </Button>
-                      {project.created_by !== user.id && (
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="md:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>{activeProject ? activeProject.name : 'Welcome to Hackathon Hub'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Button variant={activeTab === 'profile' ? "default" : "outline"} onClick={() => setActiveTab('profile')}>
+                    <UserCircle className="mr-2 h-4 w-4" /> Profile
+                  </Button>
+                  {activeProject && (
+                    <>
+                      <Button variant={activeTab === 'team' ? "default" : "outline"} onClick={() => setActiveTab('team')}>
+                        <Users className="mr-2 h-4 w-4" /> Team
+                      </Button>
+                      <Button variant={activeTab === 'ideas' ? "default" : "outline"} onClick={() => setActiveTab('ideas')}>
+                        <Lightbulb className="mr-2 h-4 w-4" /> Ideas
+                      </Button>
+                      <Button variant={activeTab === 'progress' ? "default" : "outline"} onClick={() => setActiveTab('progress')}>
+                        <BarChart className="mr-2 h-4 w-4" /> Progress
+                      </Button>
+                      <Button variant={activeTab === 'management' ? "default" : "outline"} onClick={() => setActiveTab('management')}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Management
+                      </Button>
+                      <Button variant={activeTab === 'collaboration' ? "default" : "outline"} onClick={() => setActiveTab('collaboration')}>
+                        <MessageSquare className="mr-2 h-4 w-4" /> Collaboration
+                      </Button>
+                      <Button variant={activeTab === 'content' ? "default" : "outline"} onClick={() => setActiveTab('content')}>
+                        <FileText className="mr-2 h-4 w-4" /> Content
+                      </Button>
+                      <Button variant={activeTab === 'database' ? "default" : "outline"} onClick={() => setActiveTab('database')}>
+                        <Database className="mr-2 h-4 w-4" /> Database
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {renderActiveTab()}
+              </CardContent>
+            </Card>
+
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Notifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {notifications.map((notification) => (
+                    <li key={notification.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                      <div className="flex items-center">
+                        <Bell className="mr-2 h-4 w-4" />
+                        <span>{notification.message}</span>
+                      </div>
+                      {!notification.isread && (
                         <Button
-                          variant="outline"
-                          className="w-1/4"
-                          onClick={() => handleJoinProject(project.id)}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markNotificationAsRead(notification.id)}
                         >
-                          Join
+                          Mark as Read
                         </Button>
                       )}
                     </li>
@@ -220,73 +280,7 @@ const Index = () => {
               </CardContent>
             </Card>
           </div>
-          
-          <div className="md:col-span-2">
-            {activeProject && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{activeProject.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap justify-around mb-4">
-                    <Button variant={activeTab === 'profile' ? "default" : "outline"} onClick={() => setActiveTab('profile')}>
-                      <UserCircle className="mr-2 h-4 w-4" /> Profile
-                    </Button>
-                    <Button variant={activeTab === 'team' ? "default" : "outline"} onClick={() => setActiveTab('team')}>
-                      <Users className="mr-2 h-4 w-4" /> Team
-                    </Button>
-                    <Button variant={activeTab === 'ideas' ? "default" : "outline"} onClick={() => setActiveTab('ideas')}>
-                      <Lightbulb className="mr-2 h-4 w-4" /> Ideas
-                    </Button>
-                    <Button variant={activeTab === 'progress' ? "default" : "outline"} onClick={() => setActiveTab('progress')}>
-                      <BarChart className="mr-2 h-4 w-4" /> Progress
-                    </Button>
-                    <Button variant={activeTab === 'management' ? "default" : "outline"} onClick={() => setActiveTab('management')}>
-                      <PlusCircle className="mr-2 h-4 w-4" /> Management
-                    </Button>
-                    <Button variant={activeTab === 'collaboration' ? "default" : "outline"} onClick={() => setActiveTab('collaboration')}>
-                      <MessageSquare className="mr-2 h-4 w-4" /> Collaboration
-                    </Button>
-                    <Button variant={activeTab === 'content' ? "default" : "outline"} onClick={() => setActiveTab('content')}>
-                      <FileText className="mr-2 h-4 w-4" /> Content
-                    </Button>
-                    <Button variant={activeTab === 'database' ? "default" : "outline"} onClick={() => setActiveTab('database')}>
-                      <Database className="mr-2 h-4 w-4" /> Database
-                    </Button>
-                  </div>
-                  {renderActiveTab()}
-                </CardContent>
-              </Card>
-            )}
-          </div>
         </div>
-
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {notifications.map((notification) => (
-                <li key={notification.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Bell className="mr-2 h-4 w-4" />
-                    <span>{notification.message}</span>
-                  </div>
-                  {!notification.isread && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => markNotificationAsRead(notification.id)}
-                    >
-                      Mark as Read
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
