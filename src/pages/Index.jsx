@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database, Bell } from "lucide-react"
+import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database, Bell, LogOut } from "lucide-react"
 import Team from '../components/Team';
 import Ideas from '../components/Ideas';
 import Progress from '../components/Progress';
@@ -23,7 +23,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [tables, setTables] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -37,7 +37,10 @@ const Index = () => {
   const fetchProjects = async () => {
     const { data, error } = await supabase
       .from('projects')
-      .select('*');
+      .select('*')
+      .or(`created_by.eq.${user.id},id.in.(${
+        supabase.from('project_members').select('project_id').eq('user_id', user.id)
+      })`);
     if (error) console.error('Error fetching projects:', error);
     else setProjects(data);
   };
@@ -55,20 +58,35 @@ const Index = () => {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .eq('userid', user.id)
+      .order('createdat', { ascending: false });
     if (error) console.error('Error fetching notifications:', error);
     else setNotifications(data);
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ isread: true })
+      .eq('id', notificationId);
+    if (error) {
+      console.error('Error marking notification as read:', error);
+    } else {
+      setNotifications(notifications.map(n => 
+        n.id === notificationId ? { ...n, isread: true } : n
+      ));
+    }
   };
 
   const handleCreateProject = async () => {
     if (newProject.trim()) {
       const { data, error } = await supabase
         .from('projects')
-        .insert({ name: newProject.trim(), created_by: user.id })
+        .insert({ name: newProject.trim(), created_by: user.id, description: '' })
         .select();
       if (error) console.error('Error creating project:', error);
       else {
+        await supabase.from('project_members').insert({ project_id: data[0].id, user_id: user.id });
         setProjects([...projects, data[0]]);
         setNewProject('');
         setActiveProject(data[0]);
@@ -143,7 +161,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen p-8 bg-gray-100">
-      <h1 className="text-4xl font-bold mb-8 text-center">Hackathon Collaboration Hub</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Hackathon Collaboration Hub</h1>
+        <Button variant="outline" onClick={signOut}>
+          <LogOut className="mr-2 h-4 w-4" /> Sign Out
+        </Button>
+      </div>
       
       <div className="max-w-6xl mx-auto">
         <Card className="mb-8">
@@ -245,9 +268,20 @@ const Index = () => {
           <CardContent>
             <ul className="space-y-2">
               {notifications.map((notification) => (
-                <li key={notification.id} className="flex items-center">
-                  <Bell className="mr-2 h-4 w-4" />
-                  <span>{notification.message}</span>
+                <li key={notification.id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>{notification.message}</span>
+                  </div>
+                  {!notification.isread && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => markNotificationAsRead(notification.id)}
+                    >
+                      Mark as Read
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>
