@@ -12,16 +12,20 @@ const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [newProjectName, setNewProjectName] = useState('');
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [user]);
 
   const fetchProjects = async () => {
+    if (!user) return;
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .eq('created_by', user.id);
+      .or(`created_by.eq.${user.id},id.in.(${
+        supabase.from('project_members').select('project_id').eq('user_id', user.id)
+      })`);
     if (error) console.error('Error fetching projects:', error);
     else setProjects(data);
   };
@@ -32,10 +36,21 @@ const Dashboard = () => {
         .from('projects')
         .insert({ name: newProjectName.trim(), created_by: user.id })
         .select();
-      if (error) console.error('Error creating project:', error);
-      else {
+      if (error) {
+        console.error('Error creating project:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create project. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        await supabase.from('project_members').insert({ project_id: data[0].id, user_id: user.id });
         setProjects([...projects, data[0]]);
         setNewProjectName('');
+        toast({
+          title: "Success",
+          description: `Project "${data[0].name}" created successfully!`,
+        });
       }
     }
   };
