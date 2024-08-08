@@ -88,7 +88,13 @@ const Index = () => {
         if (error) throw error;
         
         const newProject = data[0];
-        await supabase.from('project_members').insert({ project_id: newProject.id, user_id: user.id });
+        
+        // Add the creator as a project member
+        const { error: memberError } = await supabase
+          .from('project_members')
+          .insert({ project_id: newProject.id, user_id: user.id, role: 'creator' });
+        
+        if (memberError) throw memberError;
         
         setProjects([...projects, newProject]);
         setNewProject('');
