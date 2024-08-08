@@ -56,9 +56,7 @@ const Index = () => {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .or(`created_by.eq.${user.id},id.in.(${
-        supabase.from('project_members').select('project_id').eq('user_id', user.id)
-      })`);
+      .in('id', supabase.from('project_members').select('project_id').eq('user_id', user.id));
     if (error) throw error;
     setProjects(data);
   };
@@ -108,7 +106,7 @@ const Index = () => {
         console.log('Creating project:', newProject.trim());
         const { data, error } = await supabase
           .from('projects')
-          .insert({ name: newProject.trim(), created_by: user.id, description: '' })
+          .insert({ name: newProject.trim(), description: '' })
           .select();
         if (error) throw error;
         
@@ -118,7 +116,7 @@ const Index = () => {
         console.log('Adding project member');
         const { error: memberError } = await supabase
           .from('project_members')
-          .insert({ project_id: newProjectData.id, user_id: user.id, role: 'creator' });
+          .insert({ project_id: newProjectData.id, user_id: user.id });
         
         if (memberError) throw memberError;
         
