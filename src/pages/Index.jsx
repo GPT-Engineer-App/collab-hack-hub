@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText } from "lucide-react"
+import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database } from "lucide-react"
 import Team from '../components/Team';
 import Ideas from '../components/Ideas';
 import Progress from '../components/Progress';
@@ -19,9 +19,11 @@ const Index = () => {
   const [newProject, setNewProject] = useState('');
   const [activeProject, setActiveProject] = useState(null);
   const [activeTab, setActiveTab] = useState('profile');
+  const [tables, setTables] = useState([]);
 
   useEffect(() => {
     fetchProjects();
+    fetchTables();
   }, []);
 
   const fetchProjects = async () => {
@@ -30,6 +32,15 @@ const Index = () => {
       .select('*');
     if (error) console.error('Error fetching projects:', error);
     else setProjects(data);
+  };
+
+  const fetchTables = async () => {
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public');
+    if (error) console.error('Error fetching tables:', error);
+    else setTables(data.map(table => table.table_name));
   };
 
   const handleCreateProject = async () => {
@@ -67,6 +78,21 @@ const Index = () => {
         return <Collaboration projectId={activeProject.id} />;
       case 'content':
         return <ContentManagement projectId={activeProject.id} />;
+      case 'database':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Database Tables</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc pl-5">
+                {tables.map((table, index) => (
+                  <li key={index}>{table}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        );
       default:
         return null;
     }
@@ -148,6 +174,9 @@ const Index = () => {
                     </Button>
                     <Button variant={activeTab === 'content' ? "default" : "outline"} onClick={() => setActiveTab('content')}>
                       <FileText className="mr-2 h-4 w-4" /> Content
+                    </Button>
+                    <Button variant={activeTab === 'database' ? "default" : "outline"} onClick={() => setActiveTab('database')}>
+                      <Database className="mr-2 h-4 w-4" /> Database
                     </Button>
                   </div>
                   {renderActiveTab()}
