@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
@@ -10,6 +10,9 @@ import Profile from '../components/Profile';
 import ProjectManagement from '../components/ProjectManagement';
 import Collaboration from '../components/Collaboration';
 import ContentManagement from '../components/ContentManagement';
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE')
 
 const Index = () => {
   const [projects, setProjects] = useState([]);
@@ -17,13 +20,31 @@ const Index = () => {
   const [activeProject, setActiveProject] = useState(null);
   const [activeTab, setActiveTab] = useState('profile');
 
-  const handleCreateProject = () => {
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*');
+    if (error) console.error('Error fetching projects:', error);
+    else setProjects(data);
+  };
+
+  const handleCreateProject = async () => {
     if (newProject.trim()) {
-      const newProjectObj = { name: newProject.trim(), id: Date.now() };
-      setProjects([...projects, newProjectObj]);
-      setNewProject('');
-      setActiveProject(newProjectObj);
-      setActiveTab('team');
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({ name: newProject.trim() })
+        .select();
+      if (error) console.error('Error creating project:', error);
+      else {
+        setProjects([...projects, data[0]]);
+        setNewProject('');
+        setActiveProject(data[0]);
+        setActiveTab('team');
+      }
     }
   };
 
