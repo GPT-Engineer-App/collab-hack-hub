@@ -26,7 +26,7 @@ const SignIn = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await signIn({ email: formData.email, password: formData.password });
+      const { error, data } = await signIn({ email: formData.email, password: formData.password });
       if (error) throw error;
       toast({
         title: "Success",
