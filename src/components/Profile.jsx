@@ -84,6 +84,20 @@ const Profile = () => {
         title: "Success",
         description: "Profile updated successfully.",
       });
+      
+      // Add notification for successful profile update
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          userid: user.id,
+          message: 'Your profile has been updated successfully.',
+          type: 'profile_update',
+          isread: false
+        });
+      
+      if (notificationError) {
+        console.error('Error creating notification:', notificationError);
+      }
     }
   };
 
