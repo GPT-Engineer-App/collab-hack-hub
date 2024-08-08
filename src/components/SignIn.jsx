@@ -20,8 +20,11 @@ const SignIn = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const { error } = await signIn({ email: formData.email, password: formData.password });
       if (error) throw error;
@@ -37,6 +40,8 @@ const SignIn = () => {
         description: error.message || "An error occurred during sign in",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -26,12 +26,25 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    if (user) {
-      fetchProjects();
-      fetchTables();
-      fetchNotifications();
-    }
+    const fetchData = async () => {
+      if (user) {
+        setLoading(true);
+        setError(null);
+        try {
+          await Promise.all([fetchProjects(), fetchTables(), fetchNotifications()]);
+        } catch (err) {
+          setError('Failed to fetch data. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
   }, [user]);
 
   const fetchProjects = async () => {
@@ -41,8 +54,8 @@ const Index = () => {
       .or(`created_by.eq.${user.id},id.in.(${
         supabase.from('project_members').select('project_id').eq('user_id', user.id)
       })`);
-    if (error) console.error('Error fetching projects:', error);
-    else setProjects(data);
+    if (error) throw error;
+    setProjects(data);
   };
 
   const fetchTables = async () => {
@@ -50,8 +63,8 @@ const Index = () => {
       .from('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public');
-    if (error) console.error('Error fetching tables:', error);
-    else setTables(data.map(table => table.table_name));
+    if (error) throw error;
+    setTables(data.map(table => table.table_name));
   };
 
   const fetchNotifications = async () => {
@@ -60,9 +73,17 @@ const Index = () => {
       .select('*')
       .eq('userid', user.id)
       .order('createdat', { ascending: false });
-    if (error) console.error('Error fetching notifications:', error);
-    else setNotifications(data);
+    if (error) throw error;
+    setNotifications(data);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   const markNotificationAsRead = async (notificationId) => {
     const { error } = await supabase

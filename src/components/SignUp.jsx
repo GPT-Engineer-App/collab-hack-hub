@@ -25,6 +25,8 @@ const SignUp = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -35,6 +37,7 @@ const SignUp = () => {
       });
       return;
     }
+    setLoading(true);
     try {
       const { data, error } = await signUp({
         email: formData.email,
@@ -69,6 +72,8 @@ const SignUp = () => {
         description: error.message || "An error occurred during sign up",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -129,7 +134,9 @@ const SignUp = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">Sign Up</Button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing Up...' : 'Sign Up'}
+            </Button>
           </form>
         </CardContent>
         <CardFooter>
