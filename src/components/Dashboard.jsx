@@ -27,8 +27,22 @@ const Dashboard = () => {
       .or(`created_by.eq.${user.id},id.in.(${
         supabase.from('project_members').select('project_id').eq('user_id', user.id)
       })`);
-    if (error) console.error('Error fetching projects:', error);
-    else setProjects(data);
+    if (error) {
+      console.error('Error fetching projects:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch projects. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      setProjects(data);
+      if (data.length === 0) {
+        toast({
+          title: "No Projects",
+          description: "You don't have any projects yet. Create a new one to get started!",
+        });
+      }
+    }
   };
 
   const createProject = async () => {
@@ -79,13 +93,17 @@ const Dashboard = () => {
           <CardTitle>Your Projects</CardTitle>
         </CardHeader>
         <CardContent>
-          {projects.map((project) => (
-            <Link key={project.id} to={`/project/${project.id}`}>
-              <Button variant="outline" className="w-full mb-2 justify-start">
-                {project.name}
-              </Button>
-            </Link>
-          ))}
+          {projects.length > 0 ? (
+            projects.map((project) => (
+              <Link key={project.id} to={`/project/${project.id}`}>
+                <Button variant="outline" className="w-full mb-2 justify-start">
+                  {project.name}
+                </Button>
+              </Link>
+            ))
+          ) : (
+            <p className="text-center text-gray-500">No projects found. Create a new one to get started!</p>
+          )}
         </CardContent>
       </Card>
     </div>
