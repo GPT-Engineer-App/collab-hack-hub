@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE');
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +36,27 @@ const SignUp = () => {
       return;
     }
     try {
-      await signUp({ email: formData.email, password: formData.password, options: { data: { name: formData.name } } });
+      const { data, error } = await signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+          },
+        },
+      });
+      if (error) throw error;
+      
+      // Insert user details into the users table
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: data.user.id,
+          name: formData.name,
+          email: formData.email,
+        });
+      if (profileError) throw profileError;
+
       toast({
         title: "Success",
         description: "Account created successfully. Please sign in.",
