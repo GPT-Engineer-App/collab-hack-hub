@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -25,6 +26,7 @@ const Index = () => {
   const [notifications, setNotifications] = useState([]);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -225,7 +227,10 @@ const Index = () => {
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">{activeProject ? activeProject.name : 'Dashboard'}</h2>
-            <Button variant="outline" onClick={signOut}>
+            <Button variant="outline" onClick={async () => {
+              await signOut();
+              navigate('/signin');
+            }}>
               <LogOut className="mr-2 h-4 w-4" /> Sign Out
             </Button>
           </div>
