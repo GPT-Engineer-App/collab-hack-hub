@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare } from "lucide-react"
+import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText } from "lucide-react"
 import Team from '../components/Team';
 import Ideas from '../components/Ideas';
 import Progress from '../components/Progress';
 import Profile from '../components/Profile';
 import ProjectManagement from '../components/ProjectManagement';
 import Collaboration from '../components/Collaboration';
+import ContentManagement from '../components/ContentManagement';
 
 const Index = () => {
   const [projects, setProjects] = useState([]);
@@ -43,6 +44,8 @@ const Index = () => {
         return <ProjectManagement projectId={activeProject.id} />;
       case 'collaboration':
         return <Collaboration projectId={activeProject.id} />;
+      case 'content':
+        return <ContentManagement projectId={activeProject.id} />;
       default:
         return null;
     }
@@ -121,6 +124,9 @@ const Index = () => {
                     </Button>
                     <Button variant={activeTab === 'collaboration' ? "default" : "outline"} onClick={() => setActiveTab('collaboration')}>
                       <MessageSquare className="mr-2 h-4 w-4" /> Collaboration
+                    </Button>
+                    <Button variant={activeTab === 'content' ? "default" : "outline"} onClick={() => setActiveTab('content')}>
+                      <FileText className="mr-2 h-4 w-4" /> Content
                     </Button>
                   </div>
                   {renderActiveTab()}
