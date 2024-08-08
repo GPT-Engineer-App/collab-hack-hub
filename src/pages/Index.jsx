@@ -14,6 +14,7 @@ import ContentManagement from '../components/ContentManagement';
 import { useAuth } from '../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js'
 import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 
 const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE')
 
@@ -105,20 +106,24 @@ const Index = () => {
   const handleCreateProject = async () => {
     if (newProject.trim()) {
       try {
+        console.log('Creating project:', newProject.trim());
         const { data, error } = await supabase
           .from('projects')
           .insert({ name: newProject.trim(), created_by: user.id, description: '' })
           .select();
         if (error) throw error;
         
+        console.log('Project created:', data[0]);
         const newProjectData = data[0];
         
+        console.log('Adding project member');
         const { error: memberError } = await supabase
           .from('project_members')
           .insert({ project_id: newProjectData.id, user_id: user.id, role: 'creator' });
         
         if (memberError) throw memberError;
         
+        console.log('Project member added');
         setProjects([...projects, newProjectData]);
         setNewProject('');
         setActiveProject(newProjectData);
@@ -127,6 +132,7 @@ const Index = () => {
           title: "Project Created",
           description: `You've successfully created the project: ${newProjectData.name}`,
         });
+        console.log('Project creation complete');
       } catch (error) {
         console.error('Error creating project:', error);
         toast({
@@ -135,6 +141,8 @@ const Index = () => {
           variant: "destructive",
         });
       }
+    } else {
+      console.log('Project name is empty');
     }
   };
 
