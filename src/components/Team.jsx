@@ -10,6 +10,7 @@ const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhb
 const Team = ({ projectId }) => {
   const [members, setMembers] = useState([]);
   const [newMember, setNewMember] = useState('');
+  const [newRole, setNewRole] = useState('');
 
   useEffect(() => {
     fetchMembers();
@@ -28,12 +29,13 @@ const Team = ({ projectId }) => {
     if (newMember.trim()) {
       const { data, error } = await supabase
         .from('team_members')
-        .insert({ name: newMember.trim(), project_id: projectId })
+        .insert({ name: newMember.trim(), role: newRole.trim(), project_id: projectId })
         .select();
       if (error) console.error('Error adding team member:', error);
       else {
         setMembers([...members, data[0]]);
         setNewMember('');
+        setNewRole('');
       }
     }
   };
@@ -59,6 +61,11 @@ const Team = ({ projectId }) => {
             value={newMember}
             onChange={(e) => setNewMember(e.target.value)}
           />
+          <Input
+            placeholder="Enter member role"
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value)}
+          />
           <Button onClick={handleAddMember}>
             <UserPlus className="mr-2 h-4 w-4" /> Add
           </Button>
@@ -66,7 +73,10 @@ const Team = ({ projectId }) => {
         <ul className="space-y-2">
           {members.map((member) => (
             <li key={member.id} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-              <span>{member.name}</span>
+              <div>
+                <span className="font-semibold">{member.name}</span>
+                {member.role && <span className="ml-2 text-sm text-gray-600">({member.role})</span>}
+              </div>
               <Button variant="ghost" size="sm" onClick={() => handleRemoveMember(member.id)}>
                 <X className="h-4 w-4" />
               </Button>
