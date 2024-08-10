@@ -6,17 +6,35 @@ import { useNotifications } from '../integrations/supabase';
 import { useToast } from "@/components/ui/use-toast";
 
 const Notifications = () => {
-  const { data: notifications, isLoading, isError, refetch } = useNotifications();
+  const { user } = useAuth();
+  const { data: notifications, isLoading, isError, refetch } = useQuery({
+    queryKey: ['notifications', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
   const { toast } = useToast();
 
   const markAsRead = async (notificationId) => {
     try {
-      // Implement the logic to mark a notification as read
-      // This might involve calling a mutation function from your Supabase integration
-      // For now, we'll just show a toast message
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+      
+      if (error) throw error;
+      
       toast({ title: "Notification marked as read", description: "The notification has been updated." });
       refetch();
     } catch (error) {
+      console.error('Error marking notification as read:', error);
       toast({ title: "Error", description: "Failed to mark notification as read. Please try again.", variant: "destructive" });
     }
   };

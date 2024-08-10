@@ -56,12 +56,20 @@ const Index = () => {
 
   const fetchProjects = async () => {
     if (!user) return;
+    const { data: memberProjects, error: memberError } = await supabase
+      .from('project_members')
+      .select('project_id')
+      .eq('user_id', user.id);
+
+    if (memberError) throw memberError;
+
+    const projectIds = memberProjects.map(mp => mp.project_id);
+
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .or(`created_by.eq.${user.id},id.in.(${
-        supabase.from('project_members').select('project_id').eq('user_id', user.id)
-      }).values()`);
+      .or(`created_by.eq.${user.id},id.in.(${projectIds.join(',')})`);
+
     if (error) throw error;
     setProjects(data);
   };
