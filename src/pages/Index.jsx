@@ -11,6 +11,8 @@ import Profile from '../components/Profile';
 import ProjectManagement from '../components/ProjectManagement';
 import Collaboration from '../components/Collaboration';
 import ContentManagement from '../components/ContentManagement';
+import TaskManagement from '../components/TaskManagement';
+import Notifications from '../components/Notifications';
 import { useAuth } from '../contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js'
 import { useToast } from "@/components/ui/use-toast"
@@ -264,7 +266,7 @@ const Index = () => {
           </Card>
         ) : null;
       case 'tasks':
-        return activeProject ? <ProjectManagement projectId={activeProject.id} /> : null;
+        return activeProject ? <TaskManagement projectId={activeProject.id} /> : null;
       case 'team':
         return activeProject ? <Team projectId={activeProject.id} /> : null;
       case 'documents':
@@ -457,34 +459,7 @@ const Index = () => {
             </Card>
           )}
 
-          {user && (
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle>Notifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {notifications.map((notification) => (
-                    <li key={notification.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                      <div className="flex items-center">
-                        <Bell className="mr-2 h-4 w-4" />
-                        <span>{notification.message}</span>
-                      </div>
-                      {!notification.isread && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => markNotificationAsRead(notification.id)}
-                        >
-                          Mark as Read
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {user && <Notifications />}
         </div>
       </div>
     </div>
