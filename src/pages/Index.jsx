@@ -223,11 +223,11 @@ const Index = () => {
                 <CardTitle>Dashboard</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Welcome to your Hackathon Hub Dashboard!</p>
-                {/* Add more dashboard content here if needed */}
+                <p className="mb-4">Welcome to your Hackathon Hub Dashboard!</p>
+                <DashboardSummary userId={user.id} />
               </CardContent>
             </Card>
-            <ContentManagement projectId={activeProject?.id} />
+            <RecentActivities userId={user.id} />
           </>
         );
       case 'profile':
