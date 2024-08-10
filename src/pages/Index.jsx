@@ -19,6 +19,7 @@ const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhb
 
 const Index = () => {
   const [projects, setProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [newProject, setNewProject] = useState('');
   const [activeProject, setActiveProject] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -37,7 +38,7 @@ const Index = () => {
         setLoading(true);
         setError(null);
         try {
-          await Promise.all([fetchProjects(), fetchTables(), fetchNotifications()]);
+          await Promise.all([fetchProjects(), fetchAllProjects(), fetchTables(), fetchNotifications()]);
         } catch (err) {
           setError('Failed to fetch data. Please try again.');
         } finally {
@@ -56,9 +57,19 @@ const Index = () => {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .in('id', supabase.from('project_members').select('project_id').eq('user_id', user.id));
+      .or(`created_by.eq.${user.id},id.in.(${
+        supabase.from('project_members').select('project_id').eq('user_id', user.id)
+      })`);
     if (error) throw error;
     setProjects(data);
+  };
+
+  const fetchAllProjects = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*');
+    if (error) throw error;
+    setAllProjects(data);
   };
 
   const fetchTables = async () => {
@@ -106,7 +117,7 @@ const Index = () => {
         console.log('Creating project:', newProject.trim());
         const { data, error } = await supabase
           .from('projects')
-          .insert({ name: newProject.trim(), description: '' })
+          .insert({ name: newProject.trim(), description: '', created_by: user.id })
           .select();
         if (error) throw error;
         
@@ -122,6 +133,7 @@ const Index = () => {
         
         console.log('Project member added');
         setProjects([...projects, newProjectData]);
+        setAllProjects([...allProjects, newProjectData]);
         setNewProject('');
         setActiveProject(newProjectData);
         setActiveTab('team');
@@ -162,6 +174,33 @@ const Index = () => {
         );
       case 'profile':
         return <Profile />;
+      case 'browseProjects':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Browse Projects</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {allProjects.map((project) => (
+                  <li key={project.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                    <span>{project.name}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setActiveProject(project);
+                        setActiveTab('team');
+                      }}
+                    >
+                      View Project
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        );
       case 'team':
         return activeProject ? <Team projectId={activeProject.id} /> : null;
       case 'ideas':
@@ -205,6 +244,9 @@ const Index = () => {
           </Button>
           <Button variant="outline" className="w-full mb-4" onClick={() => setActiveTab('profile')}>
             <UserCircle className="mr-2 h-4 w-4" /> Profile
+          </Button>
+          <Button variant="outline" className="w-full mb-4" onClick={() => setActiveTab('browseProjects')}>
+            <Search className="mr-2 h-4 w-4" /> Browse Projects
           </Button>
         </div>
         {user && (
