@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
+import RecentActivities from '../components/RecentActivities';
 import { Input } from "@/components/ui/input"
 import DashboardSummary from '../components/DashboardSummary';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
