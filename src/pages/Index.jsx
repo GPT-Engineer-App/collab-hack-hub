@@ -21,6 +21,9 @@ import { useToast } from "@/components/ui/use-toast"
 
 const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE')
 
+// Add this new import
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+
 const Index = () => {
   const [projects, setProjects] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
@@ -276,7 +279,22 @@ const Index = () => {
       case 'tasks':
         return activeProject ? <TaskManagement projectId={activeProject.id} /> : null;
       case 'team':
-        return activeProject ? <Team projectId={activeProject.id} /> : null;
+        return activeProject ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">Manage Team</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Team Management</DialogTitle>
+                <DialogDescription>
+                  Add, edit, or remove team members for this project.
+                </DialogDescription>
+              </DialogHeader>
+              <Team projectId={activeProject.id} />
+            </DialogContent>
+          </Dialog>
+        ) : null;
       case 'documents':
         return activeProject ? <ContentManagement projectId={activeProject.id} /> : null;
       case 'collaboration':
