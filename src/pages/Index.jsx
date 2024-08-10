@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import DashboardSummary from '../components/DashboardSummary';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database, Bell, LogOut, Home, Settings, Search, Edit, Trash2 } from "lucide-react"
 import Team from '../components/Team';
