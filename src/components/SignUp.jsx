@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient('https://bmkjdankirqsktbkgliy.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJta2pkYW5raXJxc2t0YmtnbGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMxMDQ2MzYsImV4cCI6MjAzODY4MDYzNn0.zQXbChBSwQh_85GHWsEHsnjdGbUiW83EOnpkOsENpPE');
+import { supabase } from '../integrations/supabase';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +17,6 @@ const SignUp = () => {
     profilepicture: '',
     skills: [],
   });
-  const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -42,33 +38,23 @@ const SignUp = () => {
     }
     setLoading(true);
     try {
-      const { data, error } = await signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             name: formData.name,
+            username: formData.username,
+            profilepicture: formData.profilepicture,
+            skills: formData.skills,
           },
         },
       });
       if (error) throw error;
-      
-      // Insert user details into the users table
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          name: formData.name || null,
-          email: formData.email,
-          username: formData.username || null,
-          profilepicture: formData.profilepicture || null,
-          skills: formData.skills.length > 0 ? formData.skills : null,
-        });
-      if (profileError) throw profileError;
 
       toast({
         title: "Success",
-        description: "Account created successfully. Please sign in.",
+        description: "Account created successfully. Please check your email to verify your account.",
       });
       navigate('/signin');
     } catch (error) {
