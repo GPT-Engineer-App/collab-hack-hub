@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database, Bell, LogOut, Home, Settings, Search } from "lucide-react"
+import { PlusCircle, Users, Lightbulb, BarChart, UserCircle, MessageSquare, FileText, Database, Bell, LogOut, Home, Settings, Search, Edit, Trash2 } from "lucide-react"
 import Team from '../components/Team';
 import Ideas from '../components/Ideas';
 import Progress from '../components/Progress';
@@ -114,24 +114,18 @@ const Index = () => {
   const handleCreateProject = async () => {
     if (newProject.trim()) {
       try {
-        console.log('Creating project:', newProject.trim());
         const { data, error } = await supabase
           .from('projects')
           .insert({ name: newProject.trim(), description: '', created_by: user.id })
           .select();
         if (error) throw error;
         
-        console.log('Project created:', data[0]);
         const newProjectData = data[0];
         
-        console.log('Adding project member');
-        const { error: memberError } = await supabase
+        await supabase
           .from('project_members')
           .insert({ project_id: newProjectData.id, user_id: user.id });
         
-        if (memberError) throw memberError;
-        
-        console.log('Project member added');
         setProjects([...projects, newProjectData]);
         setAllProjects([...allProjects, newProjectData]);
         setNewProject('');
@@ -141,7 +135,6 @@ const Index = () => {
           title: "Project Created",
           description: `You've successfully created the project: ${newProjectData.name}`,
         });
-        console.log('Project creation complete');
       } catch (error) {
         console.error('Error creating project:', error);
         toast({
@@ -150,8 +143,65 @@ const Index = () => {
           variant: "destructive",
         });
       }
-    } else {
-      console.log('Project name is empty');
+    }
+  };
+
+  const handleUpdateProject = async (projectId, updatedName) => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .update({ name: updatedName })
+        .eq('id', projectId)
+        .select();
+      if (error) throw error;
+
+      const updatedProject = data[0];
+      setProjects(projects.map(p => p.id === projectId ? updatedProject : p));
+      setAllProjects(allProjects.map(p => p.id === projectId ? updatedProject : p));
+      if (activeProject?.id === projectId) {
+        setActiveProject(updatedProject);
+      }
+      toast({
+        title: "Project Updated",
+        description: `Project "${updatedName}" has been updated successfully.`,
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update project. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+      try {
+        const { error } = await supabase
+          .from('projects')
+          .delete()
+          .eq('id', projectId);
+        if (error) throw error;
+
+        setProjects(projects.filter(p => p.id !== projectId));
+        setAllProjects(allProjects.filter(p => p.id !== projectId));
+        if (activeProject?.id === projectId) {
+          setActiveProject(null);
+          setActiveTab('dashboard');
+        }
+        toast({
+          title: "Project Deleted",
+          description: "The project has been deleted successfully.",
+        });
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete project. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -254,10 +304,10 @@ const Index = () => {
             <h2 className="font-semibold mb-2">Your Projects</h2>
             <ul className="space-y-2">
               {projects.map((project) => (
-                <li key={project.id}>
+                <li key={project.id} className="flex items-center justify-between">
                   <Button
                     variant={activeProject?.id === project.id ? "default" : "ghost"}
-                    className="w-full justify-start"
+                    className="w-3/4 justify-start"
                     onClick={() => {
                       setActiveProject(project);
                       setActiveTab('team');
@@ -265,6 +315,27 @@ const Index = () => {
                   >
                     {project.name}
                   </Button>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newName = prompt("Enter new project name:", project.name);
+                        if (newName && newName !== project.name) {
+                          handleUpdateProject(project.id, newName);
+                        }
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteProject(project.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
