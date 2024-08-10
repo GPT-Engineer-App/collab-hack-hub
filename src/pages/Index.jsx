@@ -61,7 +61,7 @@ const Index = () => {
       .select('*')
       .or(`created_by.eq.${user.id},id.in.(${
         supabase.from('project_members').select('project_id').eq('user_id', user.id)
-      })`);
+      }).values()`);
     if (error) throw error;
     setProjects(data);
   };
@@ -77,9 +77,7 @@ const Index = () => {
   const fetchTables = async () => {
     if (!user) return;
     const { data, error } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public');
+      .rpc('get_public_tables');
     if (error) throw error;
     setTables(data.map(table => table.table_name));
   };
@@ -90,7 +88,7 @@ const Index = () => {
       .from('notifications')
       .select('*')
       .eq('userid', user.id)
-      .order('createdat', { ascending: false });
+      .order('created_at', { ascending: false });
     if (error) throw error;
     setNotifications(data);
   };
