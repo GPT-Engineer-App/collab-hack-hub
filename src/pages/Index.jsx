@@ -147,15 +147,18 @@ const Index = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Welcome to your Hackathon Hub Dashboard!</p>
-              {/* Add dashboard content here */}
-            </CardContent>
-          </Card>
+          <>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Dashboard</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Welcome to your Hackathon Hub Dashboard!</p>
+                {/* Add more dashboard content here if needed */}
+              </CardContent>
+            </Card>
+            <ContentManagement projectId={activeProject?.id} />
+          </>
         );
       case 'profile':
         return <Profile />;
