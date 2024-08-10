@@ -16,6 +16,9 @@ const SignUp = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    username: '',
+    profilepicture: '',
+    skills: [],
   });
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -55,8 +58,11 @@ const SignUp = () => {
         .from('users')
         .insert({
           id: data.user.id,
-          name: formData.name,
+          name: formData.name || null,
           email: formData.email,
+          username: formData.username || null,
+          profilepicture: formData.profilepicture || null,
+          skills: formData.skills.length > 0 ? formData.skills : null,
         });
       if (profileError) throw profileError;
 
@@ -87,7 +93,7 @@ const SignUp = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Name (optional)</Label>
               <Input
                 id="name"
                 name="name"
@@ -95,7 +101,6 @@ const SignUp = () => {
                 placeholder="Your full name"
                 value={formData.name}
                 onChange={handleChange}
-                required
               />
             </div>
             <div className="space-y-2">
@@ -108,6 +113,39 @@ const SignUp = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username (optional)</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Choose a username"
+                value={formData.username}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profilepicture">Profile Picture URL (optional)</Label>
+              <Input
+                id="profilepicture"
+                name="profilepicture"
+                type="url"
+                placeholder="URL to your profile picture"
+                value={formData.profilepicture}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="skills">Skills (optional, comma-separated)</Label>
+              <Input
+                id="skills"
+                name="skills"
+                type="text"
+                placeholder="e.g. JavaScript, React, Node.js"
+                value={formData.skills.join(', ')}
+                onChange={(e) => setFormData({ ...formData, skills: e.target.value.split(',').map(skill => skill.trim()) })}
               />
             </div>
             <div className="space-y-2">
