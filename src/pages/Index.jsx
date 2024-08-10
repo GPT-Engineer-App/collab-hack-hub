@@ -240,7 +240,7 @@ const Index = () => {
                       size="sm"
                       onClick={() => {
                         setActiveProject(project);
-                        setActiveTab('team');
+                        setActiveTab('projectDashboard');
                       }}
                     >
                       View Project
@@ -251,18 +251,42 @@ const Index = () => {
             </CardContent>
           </Card>
         );
+      case 'projectDashboard':
+        return activeProject ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>{activeProject.name} Dashboard</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Project overview and quick actions</p>
+              {/* Add project overview content here */}
+            </CardContent>
+          </Card>
+        ) : null;
+      case 'tasks':
+        return activeProject ? <ProjectManagement projectId={activeProject.id} /> : null;
       case 'team':
         return activeProject ? <Team projectId={activeProject.id} /> : null;
+      case 'documents':
+        return activeProject ? <ContentManagement projectId={activeProject.id} /> : null;
+      case 'collaboration':
+        return activeProject ? <Collaboration projectId={activeProject.id} /> : null;
+      case 'projectSettings':
+        return activeProject ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Add project settings form here */}
+              <p>Project settings and configuration options</p>
+            </CardContent>
+          </Card>
+        ) : null;
       case 'ideas':
         return activeProject ? <Ideas projectId={activeProject.id} /> : null;
       case 'progress':
         return activeProject ? <Progress projectId={activeProject.id} /> : null;
-      case 'management':
-        return activeProject ? <ProjectManagement projectId={activeProject.id} /> : null;
-      case 'collaboration':
-        return activeProject ? <Collaboration projectId={activeProject.id} /> : null;
-      case 'content':
-        return activeProject ? <ContentManagement projectId={activeProject.id} /> : null;
       case 'database':
         return (
           <Card>
@@ -286,7 +310,7 @@ const Index = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md">
+      <div className="w-64 bg-white shadow-md overflow-y-auto">
         <div className="p-4">
           <h1 className="text-2xl font-bold mb-4">Hackathon Hub</h1>
           <Button variant="outline" className="w-full mb-4" onClick={() => setActiveTab('dashboard')}>
@@ -304,38 +328,46 @@ const Index = () => {
             <h2 className="font-semibold mb-2">Your Projects</h2>
             <ul className="space-y-2">
               {projects.map((project) => (
-                <li key={project.id} className="flex items-center justify-between">
+                <li key={project.id}>
                   <Button
                     variant={activeProject?.id === project.id ? "default" : "ghost"}
-                    className="w-3/4 justify-start"
+                    className="w-full justify-start mb-2"
                     onClick={() => {
                       setActiveProject(project);
-                      setActiveTab('team');
+                      setActiveTab('projectDashboard');
                     }}
                   >
                     {project.name}
                   </Button>
-                  <div className="flex space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const newName = prompt("Enter new project name:", project.name);
-                        if (newName && newName !== project.name) {
-                          handleUpdateProject(project.id, newName);
-                        }
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteProject(project.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {activeProject?.id === project.id && (
+                    <ul className="ml-4 space-y-2">
+                      <li>
+                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setActiveTab('tasks')}>
+                          Tasks
+                        </Button>
+                      </li>
+                      <li>
+                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setActiveTab('team')}>
+                          Team Members
+                        </Button>
+                      </li>
+                      <li>
+                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setActiveTab('documents')}>
+                          Documents
+                        </Button>
+                      </li>
+                      <li>
+                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setActiveTab('collaboration')}>
+                          Real-Time Collaboration
+                        </Button>
+                      </li>
+                      <li>
+                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setActiveTab('projectSettings')}>
+                          Project Settings
+                        </Button>
+                      </li>
+                    </ul>
+                  )}
                 </li>
               ))}
             </ul>
