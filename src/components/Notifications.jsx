@@ -5,6 +5,7 @@ import { Bell } from "lucide-react";
 import { useNotifications } from '../integrations/supabase';
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 
 const Notifications = () => {
   const { user } = useAuth();
