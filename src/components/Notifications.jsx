@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useNotifications } from '../integrations/supabase';
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from '../contexts/AuthContext';
 
 const Notifications = () => {
   const { user } = useAuth();
   const { data: notifications, isLoading, isError, refetch } = useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
