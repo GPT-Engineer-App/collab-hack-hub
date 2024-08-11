@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,16 +8,15 @@ import { useToast } from "@/components/ui/use-toast";
 
 const TaskManagement = ({ projectId }) => {
   const [newTaskName, setNewTaskName] = useState('');
-  const { data: tasks, isLoading, isError, refetch } = useTasks(projectId);
+  const { data: tasks, isLoading, isError } = useTasks(projectId);
   const addTaskMutation = useAddTask();
   const { toast } = useToast();
 
   const createTask = async () => {
     if (newTaskName.trim()) {
       try {
-        await addTaskMutation.mutateAsync({ name: newTaskName.trim(), project_id: projectId, status: 'pending' });
+        await addTaskMutation.mutateAsync({ taskname: newTaskName.trim(), projectid: projectId, status: 'pending' });
         setNewTaskName('');
-        refetch();
         toast({ title: "Task created", description: "New task has been added successfully." });
       } catch (error) {
         toast({ title: "Error", description: "Failed to create task. Please try again.", variant: "destructive" });

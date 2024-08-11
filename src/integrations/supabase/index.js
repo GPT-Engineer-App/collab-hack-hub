@@ -1,15 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_PROJECT_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_API_KEY;
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-  },
-});
-
-import React from "react";
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function SupabaseProvider({ children }) {
     return children;
@@ -17,7 +11,7 @@ export function SupabaseProvider({ children }) {
 
 const fromSupabase = async (query) => {
     const { data, error } = await query;
-    if (error) throw new Error(error.message);
+    if (error) throw error;
     return data;
 };
 
@@ -136,33 +130,35 @@ const fromSupabase = async (query) => {
 */
 
 // Hooks for project_members
-export const useProjectMembers = () => useQuery({
-    queryKey: ['project_members'],
-    queryFn: () => fromSupabase(supabase.from('project_members').select('*'))
+export const useProjectMembers = (projectId) => useQuery({
+    queryKey: ['project_members', projectId],
+    queryFn: () => fromSupabase(supabase.from('project_members').select('*').eq('project_id', projectId)),
+    enabled: !!projectId,
 });
 
 export const useAddProjectMember = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (newMember) => fromSupabase(supabase.from('project_members').insert([newMember])),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['project_members']);
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries(['project_members', variables.project_id]);
         },
     });
 };
 
 // Hooks for tasks
-export const useTasks = () => useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => fromSupabase(supabase.from('tasks').select('*'))
+export const useTasks = (projectId) => useQuery({
+    queryKey: ['tasks', projectId],
+    queryFn: () => fromSupabase(supabase.from('tasks').select('*').eq('projectid', projectId)),
+    enabled: !!projectId,
 });
 
 export const useAddTask = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (newTask) => fromSupabase(supabase.from('tasks').insert([newTask])),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['tasks']);
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries(['tasks', variables.projectid]);
         },
     });
 };
