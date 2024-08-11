@@ -145,6 +145,23 @@ const Index = () => {
           title: "Project Created",
           description: `You've successfully created the project: ${newProjectData.name}`,
         });
+
+        // Create a notification for the new project
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            userid: user.id,
+            message: `New project created: ${newProjectData.name}`,
+            isread: false,
+            createdat: new Date().toISOString()
+          });
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+        } else {
+          // Refresh notifications
+          fetchNotifications();
+        }
       } catch (error) {
         console.error('Error creating project:', error);
         toast({
