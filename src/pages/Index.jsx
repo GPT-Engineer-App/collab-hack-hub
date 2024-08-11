@@ -126,18 +126,19 @@ const Index = () => {
       try {
         const { data, error } = await supabase
           .from('projects')
-          .insert({ name: newProject.trim(), description: '', created_by: user.id })
+          .insert({ name: newProject.trim(), description: '', createdby: user.id })
           .select();
         if (error) throw error;
         
         const newProjectData = data[0];
         
-        await supabase
+        const { error: memberError } = await supabase
           .from('project_members')
           .insert({ project_id: newProjectData.id, user_id: user.id });
+        if (memberError) throw memberError;
         
-        setProjects([...projects, newProjectData]);
-        setAllProjects([...allProjects, newProjectData]);
+        setProjects(prevProjects => [...prevProjects, newProjectData]);
+        setAllProjects(prevAllProjects => [...prevAllProjects, newProjectData]);
         setNewProject('');
         setActiveProject(newProjectData);
         setActiveTab('team');
@@ -162,6 +163,9 @@ const Index = () => {
           // Refresh notifications
           fetchNotifications();
         }
+
+        // Refresh projects
+        fetchProjects();
       } catch (error) {
         console.error('Error creating project:', error);
         toast({
