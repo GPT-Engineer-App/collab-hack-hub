@@ -81,9 +81,12 @@ const SignIn = () => {
             <Button type="submit" className="w-full">Sign In</Button>
           </form>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col space-y-2">
           <p className="text-sm text-center w-full">
             Don't have an account? <Link to="/signup" className="text-blue-600 hover:underline">Sign Up</Link>
+          </p>
+          <p className="text-sm text-center w-full">
+            <Link to="/forgot-password" className="text-blue-600 hover:underline">Forgot Password?</Link>
           </p>
         </CardFooter>
       </Card>

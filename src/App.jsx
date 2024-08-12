@@ -8,6 +8,8 @@ import SignUp from './components/SignUp';
 import SignIn from './components/SignIn';
 import LandingPage from './components/LandingPage';
 import Index from './pages/Index';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => {
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/dashboard" element={<PrivateRoute><Index /></PrivateRoute>} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
